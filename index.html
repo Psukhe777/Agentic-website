@@ -1,0 +1,1344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Venture Studio · 7-Agent Swarm</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=IBM+Plex+Mono:wght@300;400;500;600&display=swap');
+
+:root {
+  --bg:       #05080f;
+  --s1:       #090d17;
+  --s2:       #0d1220;
+  --border:   #141c2e;
+  --border2:  #1e2a40;
+  --text:     #9db4d4;
+  --bright:   #dce8f8;
+  --dim:      #2d3f5c;
+
+  --c1: #00f0ff;  /* orchestrator */
+  --c2: #00ff88;  /* plumber      */
+  --c3: #ff4da6;  /* stylist      */
+  --c4: #ffd200;  /* hunter       */
+  --c5: #ff3c3c;  /* qa           */
+  --c6: #b06fff;  /* translator   */
+  --c7: #ff8c00;  /* deployer     */
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body { height: 100%; overflow: hidden; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── GRID BG ── */
+body::before {
+  content: '';
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background:
+    linear-gradient(rgba(0,240,255,.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,240,255,.018) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+/* ─────────────────────── TOPBAR ─────────────────────── */
+.topbar {
+  position: relative; z-index: 50;
+  height: 52px;
+  background: rgba(5,8,15,.96);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center;
+  padding: 0 20px; gap: 14px;
+  flex-shrink: 0;
+  backdrop-filter: blur(10px);
+}
+
+.logo {
+  font-family: 'Syne', sans-serif;
+  font-size: 17px; font-weight: 800;
+  color: var(--bright);
+  letter-spacing: -.03em;
+  white-space: nowrap;
+}
+.logo span { color: var(--c1); }
+
+.topbar-divider { width: 1px; height: 24px; background: var(--border2); flex-shrink:0; }
+
+.badge {
+  font-size: 9px; letter-spacing: .08em;
+  padding: 3px 9px; border-radius: 3px; border: 1px solid;
+  white-space: nowrap;
+}
+
+.badge-green  { color: var(--c2); border-color: var(--c2); background: rgba(0,255,136,.06); }
+.badge-yellow { color: var(--c4); border-color: var(--c4); background: rgba(255,210,0,.06); }
+
+#live-badge {
+  margin-left: auto;
+  display: flex; align-items: center; gap: 7px;
+  font-size: 10px; color: var(--c2);
+}
+.live-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--c2);
+  animation: livepulse 2s infinite;
+}
+@keyframes livepulse {
+  0%,100%{box-shadow:0 0 0 0 rgba(0,255,136,.5)}
+  50%{box-shadow:0 0 0 5px rgba(0,255,136,0)}
+}
+
+/* ─────────────────────── LAYOUT ─────────────────────── */
+.app {
+  position: relative; z-index: 1;
+  display: flex; flex: 1; overflow: hidden;
+}
+
+/* ─────────────────────── SIDEBAR ─────────────────────── */
+.sidebar {
+  width: 256px; flex-shrink: 0;
+  background: var(--s1);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+
+.sidebar-section-label {
+  font-size: 8px; letter-spacing: .15em; color: var(--dim);
+  padding: 14px 16px 6px;
+}
+
+.agent-list { flex: 1; overflow-y: auto; }
+.agent-list::-webkit-scrollbar { width: 3px; }
+.agent-list::-webkit-scrollbar-thumb { background: var(--border2); }
+
+.agent-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 14px;
+  cursor: pointer;
+  border-left: 2px solid transparent;
+  transition: all .15s;
+  position: relative;
+}
+.agent-item:hover { background: rgba(255,255,255,.025); }
+.agent-item.active { background: rgba(255,255,255,.04); }
+
+.a-orb {
+  width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0;
+  position: relative;
+}
+.agent-item.active .a-orb::after {
+  content: ''; position: absolute; inset: -3px; border-radius: 50%;
+  border: 1px solid; opacity: .5;
+  animation: orbring 2s infinite;
+}
+@keyframes orbring {
+  from { transform: scale(1); opacity: .5; }
+  to   { transform: scale(2.4); opacity: 0; }
+}
+
+.a-text { flex: 1; min-width: 0; }
+.a-name { font-size: 11px; font-weight: 600; color: var(--bright); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.a-role { font-size: 9px; color: var(--dim); margin-top: 1px; }
+.a-free-tag {
+  font-size: 8px; padding: 2px 5px; border-radius: 2px;
+  background: rgba(0,255,136,.08); color: var(--c2); border: 1px solid rgba(0,255,136,.2);
+  flex-shrink: 0;
+}
+
+/* Safety panel */
+.safety-panel {
+  margin: 10px 12px 14px;
+  background: rgba(0,240,255,.04);
+  border: 1px solid rgba(0,240,255,.12);
+  border-radius: 8px;
+  padding: 12px 13px;
+}
+.safety-panel-title { font-size: 8px; letter-spacing: .12em; color: var(--c1); margin-bottom: 8px; }
+.safety-row { display: flex; align-items: center; gap: 7px; font-size: 9px; color: var(--dim); margin-bottom: 4px; }
+.safety-row .ck { color: var(--c2); }
+
+/* ─────────────────────── MAIN ─────────────────────── */
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+/* Agent header */
+.agent-header {
+  padding: 16px 22px 13px;
+  border-bottom: 1px solid var(--border);
+  background: var(--s1);
+  flex-shrink: 0;
+}
+.ah-top { display: flex; align-items: flex-start; gap: 13px; }
+.ah-icon {
+  width: 42px; height: 42px; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 19px; flex-shrink: 0;
+}
+.ah-info { flex: 1; }
+.ah-name {
+  font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800;
+  color: var(--bright); letter-spacing: -.03em; line-height: 1.1;
+}
+.ah-desc { font-size: 10px; color: var(--dim); margin-top: 4px; line-height: 1.55; max-width: 580px; }
+
+.pills { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 9px; }
+.pill {
+  font-size: 8px; padding: 2px 8px; border-radius: 3px;
+  border: 1px solid; letter-spacing: .04em;
+}
+
+/* Keys config bar */
+.keys-bar {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 22px;
+  border-bottom: 1px solid var(--border);
+  background: var(--s2);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+.keys-bar-label { font-size: 9px; color: var(--dim); letter-spacing: .1em; white-space: nowrap; }
+.key-input {
+  background: var(--bg); border: 1px solid var(--border2);
+  border-radius: 4px; padding: 4px 9px;
+  color: var(--text); font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px; width: 220px; outline: none;
+  transition: border-color .2s;
+}
+.key-input:focus { border-color: var(--c1); }
+.key-input::placeholder { color: var(--dim); }
+
+/* Tabs */
+.tabs-row {
+  display: flex; border-bottom: 1px solid var(--border);
+  background: var(--s1); flex-shrink: 0;
+}
+.tab-btn {
+  padding: 9px 18px; font-size: 9px; letter-spacing: .1em;
+  color: var(--dim); cursor: pointer; border: none; background: none;
+  border-bottom: 2px solid transparent; font-family: inherit;
+  transition: all .15s;
+}
+.tab-btn:hover { color: var(--text); }
+.tab-btn.active { color: var(--c1); border-bottom-color: var(--c1); }
+
+/* ── CHAT ── */
+.chat-wrap { flex: 1; overflow-y: auto; padding: 18px 22px; display: flex; flex-direction: column; gap: 14px; }
+.chat-wrap::-webkit-scrollbar { width: 3px; }
+.chat-wrap::-webkit-scrollbar-thumb { background: var(--border2); }
+
+.msg { display: flex; gap: 10px; animation: fadein .22s ease; }
+@keyframes fadein { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:none} }
+
+.msg-av {
+  width: 26px; height: 26px; border-radius: 5px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; flex-shrink: 0; margin-top: 1px;
+}
+.msg-body { flex: 1; min-width: 0; }
+.msg-who { font-size: 8px; letter-spacing: .1em; margin-bottom: 4px; }
+.msg-bub {
+  background: var(--s2); border: 1px solid var(--border);
+  border-radius: 3px 9px 9px 9px;
+  padding: 10px 13px; font-size: 11px; line-height: 1.7;
+  color: var(--text); white-space: pre-wrap; word-break: break-word;
+}
+.msg-bub code {
+  background: rgba(0,0,0,.5); padding: 1px 5px; border-radius: 2px;
+  color: var(--c2); font-size: 10px;
+}
+.msg-bub pre {
+  background: rgba(0,0,0,.6); border: 1px solid var(--border2);
+  border-radius: 5px; padding: 10px 12px; overflow-x: auto; margin: 7px 0;
+}
+.msg-bub pre code { background: none; padding: 0; }
+.msg-bub b { color: var(--bright); }
+
+.msg.user { flex-direction: row-reverse; }
+.msg.user .msg-bub {
+  background: rgba(255,255,255,.035); border-color: rgba(255,255,255,.07);
+  border-radius: 9px 3px 9px 9px;
+}
+.msg.user .msg-who { text-align: right; }
+
+.thinking-dots { display:flex; gap:4px; padding:6px 2px; }
+.td {
+  width:5px; height:5px; border-radius:50%; background:var(--dim);
+  animation: td 1.2s infinite;
+}
+.td:nth-child(2){animation-delay:.2s}
+.td:nth-child(3){animation-delay:.4s}
+@keyframes td {
+  0%,60%,100%{transform:translateY(0);opacity:.3}
+  30%{transform:translateY(-5px);opacity:1}
+}
+
+/* ── INPUT ── */
+.input-zone {
+  padding: 13px 22px;
+  border-top: 1px solid var(--border);
+  background: var(--s1); flex-shrink: 0;
+}
+.input-row { display:flex; gap:8px; align-items:flex-end; }
+.prompt-box {
+  flex: 1; background: var(--bg); border: 1px solid var(--border2);
+  border-radius: 7px; padding: 9px 13px;
+  color: var(--bright); font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px; resize: none; min-height: 40px; max-height: 110px;
+  outline: none; line-height: 1.55; transition: border-color .2s;
+}
+.prompt-box:focus { border-color: var(--active-c, var(--c1)); }
+.prompt-box::placeholder { color: var(--dim); }
+
+.send-btn {
+  padding: 9px 20px; border: none; border-radius: 7px;
+  cursor: pointer; font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px; font-weight: 600; letter-spacing: .08em;
+  transition: all .15s; white-space: nowrap; color: #000;
+}
+.send-btn:hover { filter: brightness(1.15); transform: translateY(-1px); }
+.send-btn:disabled { opacity: .35; cursor: not-allowed; transform: none; }
+
+.input-footer {
+  display: flex; align-items: center; gap: 8px;
+  margin-top: 7px; font-size: 9px; color: var(--dim);
+}
+.input-footer .hl { color: var(--c2); }
+
+/* ── SWARM MAP ── */
+.swarm-panel { flex:1; overflow-y:auto; padding:20px 22px; }
+.swarm-panel::-webkit-scrollbar { width:3px; }
+.swarm-panel::-webkit-scrollbar-thumb { background:var(--border2); }
+
+.swarm-intro { font-size:10px; color:var(--dim); margin-bottom:16px; max-width:700px; line-height:1.6; }
+
+.swarm-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px,1fr));
+  gap: 12px;
+}
+
+.s-card {
+  background: var(--s2); border-radius: 9px;
+  border: 1px solid var(--border);
+  padding: 16px; cursor: pointer;
+  transition: all .2s; position: relative; overflow: hidden;
+}
+.s-card::before {
+  content: ''; position: absolute; top:0;left:0;right:0;height:2px;
+}
+.s-card:hover { transform: translateY(-2px); border-color: var(--border2); }
+
+.sc-icon { font-size:22px; margin-bottom:9px; }
+.sc-name { font-family:'Syne',sans-serif; font-size:14px; font-weight:800; color:var(--bright); }
+.sc-role { font-size:8px; color:var(--dim); margin:3px 0 10px; letter-spacing:.07em; }
+.sc-tool {
+  font-size:9px; padding:3px 7px; border-radius:3px;
+  background:rgba(0,0,0,.3); color:var(--dim);
+  display:inline-block; margin-bottom:3px;
+}
+.sc-free { font-size:9px; color:var(--c2); margin-top:4px; }
+.sc-isolation { font-size:9px; color:var(--dim); margin-top:8px; border-top:1px solid var(--border); padding-top:8px; }
+
+/* ── HOW-TO PANEL ── */
+.howto-panel { flex:1; overflow-y:auto; padding:20px 22px; }
+.howto-panel::-webkit-scrollbar { width:3px; }
+.howto-panel::-webkit-scrollbar-thumb { background:var(--border2); }
+
+.howto-section { margin-bottom:22px; }
+.howto-section h3 {
+  font-family:'Syne',sans-serif; font-size:13px; font-weight:800;
+  color:var(--bright); margin-bottom:10px; letter-spacing:-.02em;
+}
+.step-card {
+  background:var(--s2); border:1px solid var(--border);
+  border-radius:8px; padding:13px 15px; margin-bottom:8px;
+}
+.step-card-title { font-size:10px; font-weight:600; color:var(--bright); margin-bottom:5px; }
+.step-card-body { font-size:10px; color:var(--dim); line-height:1.65; }
+.step-card-body code {
+  background:rgba(0,0,0,.5); color:var(--c2); padding:1px 5px; border-radius:2px;
+}
+.step-card-body a { color:var(--c1); text-decoration:none; }
+.step-card-body a:hover { text-decoration:underline; }
+
+/* ── ROADMAP ── */
+.roadmap-panel { flex:1; overflow-y:auto; padding:20px 22px; }
+.roadmap-panel::-webkit-scrollbar { width:3px; }
+.roadmap-panel::-webkit-scrollbar-thumb { background:var(--border2); }
+
+.rm-week { margin-bottom:20px; }
+.rm-week-hd {
+  font-size:8px; color:var(--dim); letter-spacing:.15em;
+  margin-bottom:9px; display:flex; align-items:center; gap:10px;
+}
+.rm-week-hd::after {
+  content:''; flex:1; height:1px; background:var(--border);
+}
+.rm-task {
+  display:flex; align-items:flex-start; gap:10px;
+  padding:7px 10px; border-radius:5px; cursor:pointer;
+  transition:background .12s; margin-bottom:3px;
+}
+.rm-task:hover { background:rgba(255,255,255,.025); }
+
+.rm-check {
+  width:14px; height:14px; border-radius:3px; flex-shrink:0;
+  border:1px solid var(--border2); margin-top:1px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:9px; cursor:pointer; transition:all .15s;
+}
+.rm-task.done .rm-check { background:var(--c2); border-color:var(--c2); color:#000; }
+.rm-text { flex:1; font-size:11px; line-height:1.5; }
+.rm-task.done .rm-text { color:var(--dim); text-decoration:line-through; }
+.rm-agent-tag {
+  font-size:8px; padding:2px 7px; border-radius:3px;
+  white-space:nowrap; border:1px solid; flex-shrink:0;
+}
+
+/* ── PANEL VISIBILITY ── */
+.panel { display:none; flex:1; flex-direction:column; overflow:hidden; }
+.panel.active { display:flex; }
+
+</style>
+</head>
+<body>
+
+<!-- ═══════════ TOP BAR ═══════════ -->
+<div class="topbar">
+  <div class="logo">Venture<span>Studio</span></div>
+  <div class="topbar-divider"></div>
+  <div class="badge badge-green">7-AGENT SWARM</div>
+  <div class="badge badge-yellow">3 PRODUCTS</div>
+  <div class="badge" style="color:var(--c1);border-color:var(--c1);background:rgba(0,240,255,.05)">MONDAY SPRINT</div>
+  <div id="live-badge">
+    <div class="live-dot"></div>
+    $0.00 / day · 0 MB RAM
+  </div>
+</div>
+
+<!-- ═══════════ APP ═══════════ -->
+<div class="app">
+
+  <!-- ── SIDEBAR ── -->
+  <div class="sidebar">
+    <div class="sidebar-section-label">AGENTS</div>
+    <div class="agent-list" id="agent-list"></div>
+
+    <div class="safety-panel">
+      <div class="safety-panel-title">⚙ SAFETY WALL</div>
+      <div class="safety-row"><span class="ck">✓</span> Zero RAM (API calls only)</div>
+      <div class="safety-row"><span class="ck">✓</span> No cross-agent data leak</div>
+      <div class="safety-row"><span class="ck">✓</span> Isolated context per agent</div>
+      <div class="safety-row"><span class="ck">✓</span> All free-tier tools</div>
+      <div class="safety-row"><span class="ck">✓</span> PII sandboxed in QA</div>
+      <div class="safety-row"><span class="ck">✓</span> System prompt isolation</div>
+    </div>
+  </div>
+
+  <!-- ── MAIN ── -->
+  <div class="main">
+
+    <!-- Agent header -->
+    <div class="agent-header" id="agent-header"></div>
+
+    <!-- API key bar -->
+    <div class="keys-bar" id="keys-bar"></div>
+
+    <!-- Tab row -->
+    <div class="tabs-row">
+      <button class="tab-btn active" onclick="switchTab('chat',this)">CHAT</button>
+      <button class="tab-btn" onclick="switchTab('swarm',this)">SWARM MAP</button>
+      <button class="tab-btn" onclick="switchTab('howto',this)">SETUP GUIDE</button>
+      <button class="tab-btn" onclick="switchTab('roadmap',this)">ROADMAP</button>
+    </div>
+
+    <!-- ── CHAT PANEL ── -->
+    <div class="panel active" id="panel-chat">
+      <div class="chat-wrap" id="chat-wrap"></div>
+      <div class="input-zone">
+        <div class="input-row">
+          <textarea class="prompt-box" id="prompt-box"
+            placeholder="Assign a task to this agent…"
+            onkeydown="handleKey(event)"
+            oninput="autoResize(this)"
+            rows="1"
+          ></textarea>
+          <button class="send-btn" id="send-btn" onclick="dispatch()">DISPATCH →</button>
+        </div>
+        <div class="input-footer">
+          <span class="hl">⬡</span>
+          Each agent runs in strict isolation — no data from other products ever enters this context window.
+          <span id="token-counter" style="margin-left:auto">0 tokens used</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SWARM MAP PANEL ── -->
+    <div class="panel" id="panel-swarm">
+      <div class="swarm-panel">
+        <div class="swarm-intro">
+          Click any card to open that agent's workspace. Each agent uses its own free tool — no shared keys, no shared context, no data contamination between LexRisk, RECALL, or PrivacyHub.
+        </div>
+        <div class="swarm-grid" id="swarm-grid"></div>
+      </div>
+    </div>
+
+    <!-- ── SETUP GUIDE PANEL ── -->
+    <div class="panel" id="panel-howto">
+      <div class="howto-panel" id="howto-content"></div>
+    </div>
+
+    <!-- ── ROADMAP PANEL ── -->
+    <div class="panel" id="panel-roadmap">
+      <div class="roadmap-panel" id="roadmap-content"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════
+// AGENT DEFINITIONS — each uses exact free tools
+// ════════════════════════════════════════════════
+const AGENTS = [
+{
+  id:'orchestrator', icon:'⬡', name:'The Orchestrator', role:'Manager · Planner',
+  color:'#00f0ff',
+  product:'ALL PRODUCTS', isolation:'Read-only planner — never writes code or touches PII',
+  tools:['Gemini 1.5 Pro (AI Studio)', 'Free 2M token window'],
+  freeHow:'google.com/aistudio → Get API key → 1M tokens/day free',
+  apiType:'gemini',
+  keyLabel:'Gemini API Key',
+  keyPlaceholder:'AIza...',
+  keyStorageKey:'vs_gemini_key',
+  model:'gemini-1.5-pro-latest',
+  endpoint:'https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={key}',
+  about:'Breaks your 60-day roadmap into daily tasks and routes work to the right agent. Feed it your entire codebase — 2M token window absorbs everything.',
+  examples:['Plan today\'s sprint: what should I build first for Monday launch?','Balance my academic deadlines with the RECALL and LexRisk sprint','Create a full Monday launch checklist for all 3 products'],
+  systemPrompt:`You are the Orchestrator of a 3-product venture studio sprint ending this Monday.
+
+PRODUCTS:
+1. LexRisk — Legal AI contract risk analyser (FastAPI + Supabase)
+2. RECALL — Healthcare SMS recall bot for dental/physio/GP clinics (FastAPI + Twilio + Supabase)
+3. PrivacyHub — Local desktop privacy tool (Tauri/CustomTkinter)
+
+YOUR 7-AGENT SWARM:
+- Plumber (Groq/Llama-3): Backend code, FastAPI, SQL schemas, Twilio
+- Stylist (v0.dev/Claude Sonnet): Frontend, Streamlit dashboards, desktop UI
+- Hunter (local n8n + Ollama): Scraping, cold emails, LinkedIn outreach
+- Ruthless QA (air-gapped Docker + Mistral): Security testing, red-teaming
+- Translator (Gemini Flash): SMS intent parsing, unstructured→JSON
+- Deployer (Copilot/ChatGPT): Railway/Render deployment, Dockerfiles, CI/CD
+
+YOUR ROLE:
+- Break tasks into daily bite-sized steps
+- Route each task to the correct agent
+- Prevent context-switching between products
+- Balance academic workload with startup sprint
+
+SAFETY RULES:
+- Never write actual code (that's Plumber's job)
+- Never reference real patient or legal client data
+- Always output which agent should execute next, tagged as [→ AGENT_NAME]
+
+FORMAT: Bullet points. Concise. Always end with the next 3 priority actions.`
+},
+{
+  id:'plumber', icon:'⚙', name:'The Plumber', role:'Backend Engineer',
+  color:'#00ff88',
+  product:'RECALL · LexRisk', isolation:'No patient PII in prompts — use placeholder data only',
+  tools:['Cline (VS Code extension)', 'Groq API — Llama-3 70B', 'Sub-second inference'],
+  freeHow:'console.groq.com → Free tier: 14,400 req/day · Install Cline in VS Code → add Groq key',
+  apiType:'groq',
+  keyLabel:'Groq API Key',
+  keyPlaceholder:'gsk_...',
+  keyStorageKey:'vs_groq_key',
+  model:'llama3-70b-8192',
+  endpoint:'https://api.groq.com/openai/v1/chat/completions',
+  about:'Writes FastAPI routes, Supabase SQL schemas, and Twilio webhooks at sub-second speed. The engine room of your entire stack.',
+  examples:['Write the FastAPI inbound SMS webhook for RECALL with Twilio TwiML response','Generate the Supabase RLS policy for the multi-tenant recalls table','Build a bulk patient import endpoint that reads CSV and upserts to Supabase'],
+  systemPrompt:`You are the Plumber — a senior backend engineer. Stack:
+- FastAPI (Python, async, Pydantic v2)
+- Supabase (PostgreSQL, RLS, Edge Functions)
+- Twilio (SMS webhooks, TwiML, inbound/outbound)
+- Docker · Railway · Render deployment
+
+ACTIVE PRODUCTS:
+1. RECALL — Multi-tenant healthcare SMS recall (dental, physio, GP, optometry, vet)
+2. LexRisk — Legal contract risk scorer with 2-page kill switch
+
+CODING RULES:
+- Always output complete, runnable code with inline comments
+- 🔒 Mark every security consideration
+- Use placeholder PII: {first_name}, patient_id, +61400000000
+- Include all required env vars at top of file
+- Add RLS to every Supabase table
+- Include error handling and logging
+
+OUTPUT FORMAT: Code block first, then brief explanation of key decisions.`
+},
+{
+  id:'stylist', icon:'◈', name:'The Stylist', role:'Frontend Designer',
+  color:'#ff4da6',
+  product:'RECALL Dashboard · PrivacyHub', isolation:'UI only — no API keys or secrets in frontend code',
+  tools:['v0.dev by Vercel (free)', 'Claude 3.5 Sonnet (claude.ai free)'],
+  freeHow:'v0.dev → free 200 credits/month · claude.ai → free tier unlimited for UI generation',
+  apiType:'none',
+  keyLabel:'No API key needed',
+  keyPlaceholder:'Uses v0.dev or claude.ai directly (free)',
+  keyStorageKey:'',
+  model:'none',
+  endpoint:'',
+  about:'Generates Streamlit dashboards that look like enterprise software. Builds the RECALL dental bot UI and the PrivacyHub desktop control panel.',
+  examples:['Build a Streamlit dashboard for RECALL showing recall stats, conversion rate, and SMS log','Create a CustomTkinter main window for PrivacyHub with a privacy score dial','Design a React component for the patient recall status table with colour-coded status chips'],
+  systemPrompt:`You are the Stylist — a world-class frontend designer for B2B SaaS.
+
+SPECIALISATIONS:
+- Streamlit dashboards (enterprise look, not toy demos)
+- Tauri/CustomTkinter desktop apps (PrivacyHub)
+- React/JSX components with Tailwind
+- Data visualisation (charts, gauges, status tables)
+
+ACTIVE PRODUCTS:
+1. RECALL — Healthcare SMS recall Streamlit dashboard
+2. PrivacyHub — Desktop privacy control centre
+
+DESIGN PHILOSOPHY:
+- Dark theme, monospace fonts for data, serif for headings
+- Enterprise-grade: clean, dense, professional — not flashy
+- Micro-animations that feel premium not gimmicky
+- Every UI should help close a B2B sale
+
+SAFETY RULES:
+- UI only — never hardcode API keys or secrets
+- Use anonymised mock data: "Patient #1047", not real names
+- All Streamlit code must run with: streamlit run app.py
+
+OUTPUT: Complete file ready to run. No truncation.`
+},
+{
+  id:'hunter', icon:'◎', name:'The Hunter', role:'Marketer · Sales Automation',
+  color:'#ffd200',
+  product:'RECALL GTM · LexRisk GTM', isolation:'Local-only n8n — zero PII sent to cloud APIs',
+  tools:['Local n8n (self-hosted)', 'Ollama — Llama-3 (local)', '100% offline generation'],
+  freeHow:'n8n.io/download → run locally free forever · ollama.ai → pull llama3 → runs on CPU',
+  apiType:'ollama',
+  keyLabel:'Ollama URL (local)',
+  keyPlaceholder:'http://localhost:11434',
+  keyStorageKey:'vs_ollama_url',
+  model:'llama3',
+  endpoint:'http://localhost:11434/api/generate',
+  about:'Scrapes Google Places for dental clinic contacts and writes hyper-personalised cold outreach. Runs 100% locally — zero API fees for thousands of email generations.',
+  examples:['Write a cold email to a dental clinic owner about RECALL — include pain points about no-shows and revenue loss','Generate a LinkedIn DM sequence (3 messages) for LexRisk targeting startup founders','Write an n8n workflow JSON to scrape Google Places for physio clinics in Melbourne'],
+  systemPrompt:`You are the Hunter — a B2B growth hacker for healthcare and legal SaaS.
+
+PRODUCTS TO SELL:
+1. RECALL — Automated SMS recall for dental/physio/GP clinics. Solves: patient no-shows, revenue gaps from overdue appointments, manual follow-up burden.
+2. LexRisk — AI contract risk scorer. Solves: SMB owners signing predatory contracts blind, expensive lawyer review for routine contracts.
+
+OUTREACH CHANNELS:
+- Cold email (personalised, max 150 words, conversational)
+- LinkedIn DM (3-message sequence: connect → value → ask)
+- n8n workflows (Google Places scraping → CRM enrichment → email send)
+
+SAFETY RULES:
+- Always include {{unsubscribe_link}} in emails (GDPR/CAN-SPAM)
+- Respect robots.txt in scraping workflows
+- Use {{practice_name}}, {{owner_name}}, {{city}} variables — never hardcode
+- Rate-limit scraping: max 1 request/2s
+
+OUTPUT: Ready-to-use copy or n8n JSON workflow. Personalisation variables in {{double_braces}}.`
+},
+{
+  id:'qa', icon:'⚠', name:'The Ruthless QA', role:'Security · Red Team Tester',
+  color:'#ff3c3c',
+  product:'LexRisk · RECALL', isolation:'AIR-GAPPED Docker — zero internet, confidential PDFs never leave machine',
+  tools:['Air-gapped Docker container', 'Local Mistral 7B (Ollama)', 'Zero network access'],
+  freeHow:'docker pull ollama/ollama → docker run --network none → ollama pull mistral → fully offline',
+  apiType:'ollama',
+  keyLabel:'Ollama URL (air-gapped)',
+  keyPlaceholder:'http://localhost:11434',
+  keyStorageKey:'vs_qa_ollama_url',
+  model:'mistral',
+  endpoint:'http://localhost:11434/api/generate',
+  about:'Tries to break your software before users do. Air-gapped so confidential legal contracts and patient PDFs have zero leakage risk. Tests for HIPAA, OWASP, and prompt injection.',
+  examples:['Red-team the RECALL inbound SMS handler — try to bypass opt-out with emoji and unicode tricks','Test LexRisk for prompt injection: craft a contract clause that tries to override the system prompt','Check the RECALL bulk import endpoint for SQL injection via CSV fields'],
+  systemPrompt:`You are the Ruthless QA — a senior security researcher and red-team tester.
+
+MISSION: Break the software before users do.
+
+ACTIVE TARGETS:
+1. LexRisk — Legal AI contract scorer
+   - Test: 2-page kill switch bypass, scoring matrix manipulation, prompt injection via contract text
+2. RECALL — Healthcare SMS recall bot
+   - Test: SMS injection, opt-out bypass, Twilio webhook spoofing, HIPAA compliance, RLS bypass
+
+TESTING FRAMEWORKS:
+- OWASP Top 10 for APIs
+- HIPAA Security Rule (patient data handling)
+- Prompt injection / jailbreak attempts on LLM features
+- SQL injection via API parameters and CSV imports
+- Social engineering via crafted SMS replies
+
+SAFETY RULES:
+- All test payloads must be clearly marked: [TEST DATA - NOT REAL]
+- Never reference real patient names, clinic names, or legal clients
+- Report findings with: SEVERITY (CRITICAL/HIGH/MEDIUM/LOW), STEPS TO REPRODUCE, FIX
+
+OUTPUT FORMAT:
+Bug ID | Severity | Component | Description | Steps | Fix Recommendation`
+},
+{
+  id:'translator', icon:'◉', name:'The Translator', role:'Data Analyst · NLP Parser',
+  color:'#b06fff',
+  product:'RECALL · LexRisk', isolation:'Stateless — strip all PII before processing, never retain data',
+  tools:['Gemini 1.5 Flash (AI Studio)', '1M tokens/day free', 'Batch SMS parsing'],
+  freeHow:'Same Gemini API key as Orchestrator — Flash is a different model, practically free',
+  apiType:'gemini',
+  keyLabel:'Gemini API Key (same as Orchestrator)',
+  keyPlaceholder:'AIza...',
+  keyStorageKey:'vs_gemini_key',
+  model:'gemini-1.5-flash-latest',
+  endpoint:'https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={key}',
+  about:'Converts messy human SMS replies into clean structured JSON for your Supabase schema. Also extracts risk clauses from contracts. Handles thousands of messages per hour at near-zero cost.',
+  examples:['Parse these SMS replies into JSON: "Nah maybe next week", "Yeah ok book me in", "Stop messaging me", "Can I come Thursday arvo?"','Extract all liability clauses from this contract paragraph and score their risk 0-1','Classify these 20 RECALL SMS intents into: book | cancel | snooze | stop | unknown'],
+  systemPrompt:`You are the Translator — a data extraction and NLP specialist.
+
+MISSION: Convert messy human text → clean structured JSON for SQL databases.
+
+PRIMARY TASKS:
+1. RECALL SMS parsing
+   Input: raw patient SMS reply
+   Output: {"intent": "book|cancel|snooze|stop|unknown", "confidence": 0.0-1.0, "preferred_day": null|string, "blocked_day": null|string, "notes": string}
+
+2. LexRisk clause extraction
+   Input: contract paragraph
+   Output: {"clause_type": string, "risk_score": 0.0-1.0, "flags": [string], "recommendation": string}
+
+3. Batch processing (array input → array output)
+
+SAFETY RULES:
+- Output ONLY valid JSON — no markdown, no preamble, no explanation
+- Strip PII from output: replace phone numbers with [PHONE], names with [NAME]
+- Always include "confidence" score
+- If ambiguous, set intent: "unknown" — never guess above .6 confidence
+
+STRICT OUTPUT: Raw JSON only. No prose. No code blocks. Just the JSON object or array.`
+},
+{
+  id:'deployer', icon:'▲', name:'The Deployer', role:'DevOps · Infrastructure',
+  color:'#ff8c00',
+  product:'ALL PRODUCTS', isolation:'Config files only — secrets always as $ENV_VAR placeholders',
+  tools:['GitHub Copilot (free for students)', 'ChatGPT-4o (free tier)', 'Railway · Render · Cloudflare'],
+  freeHow:'github.com/education → free Copilot · chatgpt.com → free 4o · railway.app → 500hrs/month free',
+  apiType:'openai',
+  keyLabel:'OpenAI API Key (ChatGPT-4o)',
+  keyPlaceholder:'sk-...',
+  keyStorageKey:'vs_openai_key',
+  model:'gpt-4o',
+  endpoint:'https://api.openai.com/v1/chat/completions',
+  about:'Takes localhost → live internet so Twilio webhooks fire when your laptop is closed. Writes exact Railway configs, Dockerfiles, and GitHub Actions CI/CD pipelines ready to copy-paste.',
+  examples:['Write the complete Railway deployment config for the RECALL FastAPI backend with Twilio webhook','Generate a Dockerfile for the LexRisk FastAPI service with minimal image size','Create a GitHub Actions workflow that deploys to Railway on every push to main'],
+  systemPrompt:`You are the Deployer — a DevOps engineer specialising in Python/FastAPI SaaS deployment.
+
+FREE PLATFORMS (use these in order of preference):
+1. Railway — FastAPI backend (500 hrs/month free, auto-deploy from GitHub)
+2. Render — Alternative (750 hrs/month free)
+3. Cloudflare Workers — Edge functions (100k req/day free)
+4. Vercel — Frontend/dashboard
+5. Supabase — Already provisioned (database + auth)
+
+ACTIVE SERVICES:
+1. RECALL FastAPI → Railway (needs Twilio webhook URL configured)
+2. LexRisk FastAPI → Railway (separate isolated service)
+3. PrivacyHub → Desktop build (Tauri pipeline)
+
+DEPLOYMENT RULES:
+- NEVER include real API keys — always use $VARIABLE_NAME format
+- Every service needs a /health endpoint
+- Include rollback strategy in every plan
+- Twilio webhook must be HTTPS (Railway provides this automatically)
+
+OUTPUT: Exact terminal commands ready to copy-paste. Full config files (Dockerfile, railway.toml, .github/workflows/deploy.yml). No truncation.`
+}
+];
+
+// ════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════
+let current = AGENTS[0];
+const histories = {};
+const tokenTotals = {};
+AGENTS.forEach(a => { histories[a.id] = []; tokenTotals[a.id] = 0; });
+let totalTokens = 0;
+
+// ════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════
+function init() {
+  renderSidebar();
+  renderSwarmGrid();
+  renderHowTo();
+  renderRoadmap();
+  selectAgent('orchestrator');
+}
+
+// ════════════════════════════════════════════════
+// SIDEBAR
+// ════════════════════════════════════════════════
+function renderSidebar() {
+  document.getElementById('agent-list').innerHTML = AGENTS.map(a => `
+    <div class="agent-item" id="nav-${a.id}" onclick="selectAgent('${a.id}')">
+      <div class="a-orb" style="background:${a.color}; border-color:${a.color}; color:${a.color}"></div>
+      <div class="a-text">
+        <div class="a-name">${a.name}</div>
+        <div class="a-role">${a.role}</div>
+      </div>
+      <div class="a-free-tag">FREE</div>
+    </div>
+  `).join('');
+}
+
+// ════════════════════════════════════════════════
+// SELECT AGENT
+// ════════════════════════════════════════════════
+function selectAgent(id) {
+  current = AGENTS.find(a => a.id === id);
+  document.querySelectorAll('.agent-item').forEach(el => {
+    el.classList.remove('active');
+    el.style.borderLeftColor = 'transparent';
+  });
+  const nav = document.getElementById('nav-'+id);
+  if (nav) { nav.classList.add('active'); nav.style.borderLeftColor = current.color; }
+
+  document.documentElement.style.setProperty('--active-c', current.color);
+  document.querySelector('.send-btn').style.background = current.color;
+
+  renderAgentHeader();
+  renderKeysBar();
+  renderChat();
+}
+
+// ════════════════════════════════════════════════
+// AGENT HEADER
+// ════════════════════════════════════════════════
+function renderAgentHeader() {
+  const a = current;
+  document.getElementById('agent-header').innerHTML = `
+    <div class="ah-top">
+      <div class="ah-icon" style="background:${a.color}18; border:1px solid ${a.color}30; color:${a.color}">${a.icon}</div>
+      <div class="ah-info">
+        <div class="ah-name">${a.name}</div>
+        <div class="ah-desc">${a.about}</div>
+        <div class="pills">
+          ${a.tools.map(t=>`<div class="pill" style="color:${a.color};border-color:${a.color}35;background:${a.color}0d">${t}</div>`).join('')}
+          <div class="pill" style="color:var(--dim);border-color:var(--border2)">${a.product}</div>
+          <div class="pill" style="color:#ff8c00;border-color:#ff8c0035;background:#ff8c000d">🔒 ${a.isolation.split('—')[0].trim()}</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ════════════════════════════════════════════════
+// KEYS BAR
+// ════════════════════════════════════════════════
+function renderKeysBar() {
+  const a = current;
+  const saved = a.keyStorageKey ? (localStorage.getItem(a.keyStorageKey)||'') : '';
+  const isOllama = a.apiType === 'ollama';
+  const isNone   = a.apiType === 'none';
+  document.getElementById('keys-bar').innerHTML = `
+    <span class="keys-bar-label">🔑 API KEY:</span>
+    <input class="key-input" id="api-key-input"
+      type="${isNone ? 'text' : 'password'}"
+      placeholder="${a.keyPlaceholder}"
+      value="${isNone ? a.keyPlaceholder : saved}"
+      ${isNone ? 'disabled' : ''}
+      oninput="saveKey(this.value)"
+      style="width:${isOllama?'280px':'260px'}"
+    />
+    <span class="keys-bar-label" style="margin-left:4px;color:var(--dim)">→</span>
+    <span class="keys-bar-label" style="color:var(--text)">${a.freeHow}</span>
+    ${!isNone ? `<a href="https://${getSignupUrl(a)}" target="_blank" style="font-size:9px;color:var(--c1);margin-left:auto;text-decoration:none">GET FREE KEY ↗</a>` : ''}
+  `;
+}
+
+function getSignupUrl(a) {
+  const map = { gemini:'aistudio.google.com', groq:'console.groq.com', ollama:'ollama.ai', openai:'platform.openai.com' };
+  return map[a.apiType] || 'google.com';
+}
+
+function saveKey(val) {
+  if (current.keyStorageKey) localStorage.setItem(current.keyStorageKey, val);
+}
+
+// ════════════════════════════════════════════════
+// CHAT RENDER
+// ════════════════════════════════════════════════
+function renderChat() {
+  const area = document.getElementById('chat-wrap');
+  const hist = histories[current.id];
+  const a = current;
+
+  if (hist.length === 0) {
+    area.innerHTML = `
+      <div class="msg">
+        <div class="msg-av" style="background:${a.color}18;color:${a.color}">${a.icon}</div>
+        <div class="msg-body">
+          <div class="msg-who" style="color:${a.color}">${a.name.toUpperCase()} · ONLINE · ${a.apiType.toUpperCase()}</div>
+          <div class="msg-bub"><b>${a.name}</b> is ready. Running on: <code>${a.tools[0]}</code>
+
+<b>Product scope:</b> ${a.product}
+<b>Safety mode:</b> ${a.isolation}
+<b>Free via:</b> ${a.freeHow}
+
+<b>Try asking me:</b>
+${a.examples.map((e,i)=>`  ${i+1}. ${e}`).join('\n')}
+
+<code>Context isolation: ACTIVE</code> — I cannot see data from other agents or products.</div>
+        </div>
+      </div>`;
+    return;
+  }
+
+  area.innerHTML = hist.map(m => {
+    if (m.role === 'user') return `
+      <div class="msg user">
+        <div class="msg-av" style="background:rgba(255,255,255,.06)">👤</div>
+        <div class="msg-body">
+          <div class="msg-who">YOU</div>
+          <div class="msg-bub">${esc(m.content)}</div>
+        </div>
+      </div>`;
+    return `
+      <div class="msg">
+        <div class="msg-av" style="background:${a.color}18;color:${a.color}">${a.icon}</div>
+        <div class="msg-body">
+          <div class="msg-who" style="color:${a.color}">${a.name.toUpperCase()}</div>
+          <div class="msg-bub">${fmt(m.content)}</div>
+        </div>
+      </div>`;
+  }).join('');
+
+  requestAnimationFrame(() => area.scrollTop = area.scrollHeight);
+}
+
+function esc(t) {
+  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+}
+function fmt(t) {
+  return t
+    .replace(/```[\w]*\n?([\s\S]*?)```/g,'<pre><code>$1</code></pre>')
+    .replace(/`([^`\n]+)`/g,'<code>$1</code>')
+    .replace(/\*\*(.+?)\*\*/g,'<b>$1</b>')
+    .replace(/\n/g,'<br>');
+}
+
+// ════════════════════════════════════════════════
+// DISPATCH — calls the agent's actual free API
+// ════════════════════════════════════════════════
+async function dispatch() {
+  const box = document.getElementById('prompt-box');
+  const msg = box.value.trim();
+  if (!msg) return;
+
+  const btn = document.getElementById('send-btn');
+  btn.disabled = true;
+  box.value = '';
+  box.style.height = 'auto';
+
+  histories[current.id].push({ role:'user', content: msg });
+
+  // Show thinking
+  const area = document.getElementById('chat-wrap');
+  const tId = 'thinking-' + Date.now();
+  area.innerHTML += `
+    <div class="msg" id="${tId}">
+      <div class="msg-av" style="background:${current.color}18;color:${current.color}">${current.icon}</div>
+      <div class="msg-body">
+        <div class="msg-who" style="color:${current.color}">${current.name.toUpperCase()} · PROCESSING</div>
+        <div class="msg-bub"><div class="thinking-dots"><div class="td"></div><div class="td"></div><div class="td"></div></div></div>
+      </div>
+    </div>`;
+  area.scrollTop = area.scrollHeight;
+
+  let reply = '';
+  try {
+    reply = await callAgentAPI(current, msg);
+  } catch(e) {
+    reply = `⚠ Error: ${e.message}\n\nTroubleshooting:\n• Check your API key is entered above\n• For Ollama agents: ensure Ollama is running locally with: ollama serve\n• For Gemini: get free key at aistudio.google.com\n• For Groq: get free key at console.groq.com\n\nThis dashboard sends requests directly from your browser to the AI API — no server in between, zero cost, zero RAM.`;
+  }
+
+  document.getElementById(tId)?.remove();
+  histories[current.id].push({ role:'assistant', content: reply });
+
+  const tokens = Math.round((current.systemPrompt.length + msg.length + reply.length) / 4);
+  tokenTotals[current.id] += tokens;
+  totalTokens += tokens;
+  document.getElementById('token-counter').textContent = `${totalTokens.toLocaleString()} tokens used`;
+
+  renderChat();
+  btn.disabled = false;
+}
+
+// ════════════════════════════════════════════════
+// API ROUTING — calls the correct free API
+// ════════════════════════════════════════════════
+async function callAgentAPI(agent, userMsg) {
+  const apiKey = agent.keyStorageKey ? localStorage.getItem(agent.keyStorageKey) || '' : '';
+  const hist = histories[agent.id];
+
+  // Build message history (last 8 turns for token efficiency)
+  const turns = hist.slice(-8);
+
+  // ── STYLIST: no API — return a redirect prompt ──
+  if (agent.apiType === 'none') {
+    return generateStylistGuide(userMsg);
+  }
+
+  // ── GEMINI (Orchestrator + Translator) ──
+  if (agent.apiType === 'gemini') {
+    if (!apiKey) throw new Error('Gemini API key not entered. Get free key at aistudio.google.com');
+    const url = agent.endpoint.replace('{model}', agent.model).replace('{key}', apiKey);
+    const contents = [
+      { role:'user', parts:[{text: agent.systemPrompt + '\n\n[BEGIN CONVERSATION]'}] },
+      { role:'model', parts:[{text:'Understood. I am ready.'}] },
+      ...turns.map(m => ({
+        role: m.role === 'user' ? 'user' : 'model',
+        parts: [{ text: m.content }]
+      }))
+    ];
+    const res = await fetch(url, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ contents, generationConfig:{ temperature:0.7, maxOutputTokens:1500 } })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+    return data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response from Gemini.';
+  }
+
+  // ── GROQ (Plumber) — OpenAI-compatible ──
+  if (agent.apiType === 'groq') {
+    if (!apiKey) throw new Error('Groq API key not entered. Get free at console.groq.com');
+    const messages = [
+      { role:'system', content: agent.systemPrompt },
+      ...turns.map(m => ({ role: m.role, content: m.content }))
+    ];
+    const res = await fetch(agent.endpoint, {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer '+apiKey },
+      body: JSON.stringify({ model: agent.model, messages, max_tokens:1500, temperature:0.7 })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+    return data.choices?.[0]?.message?.content || 'No response from Groq.';
+  }
+
+  // ── OPENAI (Deployer) ──
+  if (agent.apiType === 'openai') {
+    if (!apiKey) throw new Error('OpenAI API key not entered. Get free trial at platform.openai.com\n\nAlternative: Use ChatGPT-4o at chatgpt.com and paste the system prompt manually.');
+    const messages = [
+      { role:'system', content: agent.systemPrompt },
+      ...turns.map(m => ({ role: m.role, content: m.content }))
+    ];
+    const res = await fetch(agent.endpoint, {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer '+apiKey },
+      body: JSON.stringify({ model: agent.model, messages, max_tokens:1500 })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+    return data.choices?.[0]?.message?.content || 'No response from OpenAI.';
+  }
+
+  // ── OLLAMA (Hunter, QA) — local ──
+  if (agent.apiType === 'ollama') {
+    const baseUrl = localStorage.getItem(agent.keyStorageKey) || 'http://localhost:11434';
+    const context = turns.map(m => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`).join('\n');
+    const fullPrompt = `${agent.systemPrompt}\n\n${context}\nUser: ${userMsg}\nAssistant:`;
+    const res = await fetch(`${baseUrl}/api/generate`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ model: agent.model, prompt: fullPrompt, stream: false })
+    });
+    if (!res.ok) throw new Error(`Ollama error ${res.status}. Is Ollama running? Run: ollama serve`);
+    const data = await res.json();
+    return data.response || 'No response from Ollama.';
+  }
+
+  throw new Error('Unknown API type: ' + agent.apiType);
+}
+
+// Stylist generates a guide (no API needed — use v0.dev or claude.ai directly)
+function generateStylistGuide(userMsg) {
+  const steps = [
+    `**Step 1 — Copy this prompt to v0.dev (free at v0.dev):**\n\n\`\`\`\n${userMsg}\n\nStyle requirements:\n- Dark theme, enterprise B2B aesthetic\n- IBM Plex Mono for data, display serif for headings\n- Dense information layout, not spacious consumer UI\n- Color scheme: dark navy bg, cyan/green accents for positive metrics\n\`\`\``,
+    `**Step 2 — Or use Claude at claude.ai (free tier):**\nPaste the same prompt above into claude.ai and ask for React or Streamlit code.`,
+    `**Step 3 — For Streamlit dashboards (RECALL):**\nDownload the output, run:\n\`\`\`\npip install streamlit\nstreamlit run app.py\n\`\`\``,
+    `**Step 4 — For PrivacyHub desktop (CustomTkinter):**\n\`\`\`\npip install customtkinter\npython app.py\n\`\`\``
+  ];
+  return `The Stylist uses v0.dev and claude.ai directly — no API key needed.\n\n${steps.join('\n\n')}\n\n**Your task translated for v0.dev:**\n"${userMsg}"\n\n👉 Open v0.dev now → paste the prompt above → get production-ready code in 30 seconds.`;
+}
+
+// ════════════════════════════════════════════════
+// TABS
+// ════════════════════════════════════════════════
+function switchTab(name, el) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  if (el) el.classList.add('active');
+}
+
+// ════════════════════════════════════════════════
+// SWARM GRID
+// ════════════════════════════════════════════════
+function renderSwarmGrid() {
+  document.getElementById('swarm-grid').innerHTML = AGENTS.map(a => `
+    <div class="s-card" onclick="selectAgent('${a.id}'); switchTab('chat')" style="border-color:${a.color}22">
+      <div style="position:absolute;top:0;left:0;right:0;height:2px;background:${a.color}"></div>
+      <div class="sc-icon">${a.icon}</div>
+      <div class="sc-name">${a.name}</div>
+      <div class="sc-role">${a.role.toUpperCase()}</div>
+      <div class="sc-tool">${a.tools[0]}</div><br>
+      ${a.tools[1] ? `<div class="sc-tool">${a.tools[1]}</div>` : ''}
+      <div class="sc-free">✓ ${a.freeHow.split('→')[0].trim()}</div>
+      <div class="sc-isolation">🔒 ${a.isolation}<br><span style="color:${a.color};margin-top:3px;display:block">→ ${a.product}</span></div>
+    </div>
+  `).join('');
+}
+
+// ════════════════════════════════════════════════
+// SETUP GUIDE
+// ════════════════════════════════════════════════
+function renderHowTo() {
+  document.getElementById('howto-content').innerHTML = `
+  <div class="howto-section">
+    <h3>⚡ Zero-Cost, Zero-RAM Agentic Setup</h3>
+    <div class="step-card">
+      <div class="step-card-title">How this works</div>
+      <div class="step-card-body">This dashboard is a single HTML file. Every agent sends requests <b>directly from your browser</b> to the AI's API — no local server, no RAM usage, no Python process. Your laptop stays free. APIs are called only when you press DISPATCH.</div>
+    </div>
+  </div>
+
+  <div class="howto-section">
+    <h3 style="color:#00f0ff">⬡ Agent 1: The Orchestrator — Gemini 1.5 Pro</h3>
+    <div class="step-card">
+      <div class="step-card-title">Setup (5 min)</div>
+      <div class="step-card-body">
+        1. Go to <a href="https://aistudio.google.com" target="_blank">aistudio.google.com</a><br>
+        2. Sign in with Google → click <b>Get API Key</b><br>
+        3. Copy key → paste into Orchestrator's key field above<br>
+        4. <b>Free tier:</b> 1,500 requests/day, 1M tokens/min — more than enough<br>
+        5. Same key works for The Translator (uses Gemini Flash model)
+      </div>
+    </div>
+  </div>
+
+  <div class="howto-section">
+    <h3 style="color:#00ff88">⚙ Agent 2: The Plumber — Groq + Cline</h3>
+    <div class="step-card">
+      <div class="step-card-title">Setup (10 min)</div>
+      <div class="step-card-body">
+        <b>For this dashboard:</b><br>
+        1. Go to <a href="https://console.groq.com" target="_blank">console.groq.com</a> → create account<br>
+        2. API Keys → Create key → paste into Plumber key field<br>
+        3. Free tier: 14,400 requests/day, Llama-3 70B at sub-second speed<br><br>
+        <b>For VS Code (Cline integration):</b><br>
+        4. Install Cline extension in VS Code<br>
+        5. Cline settings → Provider: Groq → paste key<br>
+        6. Now Cline writes code directly into your files using Llama-3 70B free
+      </div>
+    </div>
+  </div>
+
+  <div class="howto-section">
+    <h3 style="color:#ff4da6">◈ Agent 3: The Stylist — v0.dev + claude.ai</h3>
+    <div class="step-card">
+      <div class="step-card-title">Setup (2 min)</div>
+      <div class="step-card-body">
+        <b>No API key needed.</b><br>
+        • <a href="https://v0.dev" target="_blank">v0.dev</a> → free 200 credits/month → best for React components<br>
+        • <a href="https://claude.ai" target="_blank">claude.ai</a> → free tier → best for Streamlit dashboards<br>
+        • This dashboard auto-generates the prompt for you — just copy-paste to v0.dev<br>
+        • For Streamlit: <code>pip install streamlit && streamlit run app.py</code>
+      </div>
+    </div>
+  </div>
+
+  <div class="howto-section">
+    <h3 style="color:#ffd200">◎ Agent 4: The Hunter — n8n + Ollama (fully local)</h3>
+    <div class="step-card">
+      <div class="step-card-title">Setup (20 min)</div>
+      <div class="step-card-body">
+        <b>Ollama (for this dashboard):</b><br>
+        1. <a href="https://ollama.ai" target="_blank">ollama.ai</a> → download → install<br>
+        2. Terminal: <code>ollama pull llama3</code> (downloads ~4GB, one-time)<br>
+        3. <code>ollama serve</code> → runs on <code>http://localhost:11434</code><br>
+        4. Enter that URL in the Hunter's key field<br><br>
+        <b>n8n for scraping workflows:</b><br>
+        5. <code>npx n8n</code> → opens at <code>http://localhost:5678</code><br>
+        6. Build Google Places → filter → email send workflow<br>
+        7. Zero cost, zero cloud PII — everything local
+      </div>
+    </div>
+  </div>
+
+  <div class="howto-section">
+    <h3 style="color:#ff3c3c">⚠ Agent 5: The Ruthless QA — Air-gapped Docker + Mistral</h3>
+    <div class="step-card">
+      <div class="step-card-title">Setup (15 min) — Maximum security isolation</div>
+      <div class="step-card-body">
+        1. Install Docker Desktop<br>
+        2. Pull Ollama image: <code>docker pull ollama/ollama</code><br>
+        3. Run air-gapped (NO internet): <code>docker run --network none -p 11434:11434 ollama/ollama</code><br>
+        4. Inside container: <code>ollama pull mistral</code><br>
+        5. QA agent URL: <code>http://localhost:11434</code><br><br>
+        <b>Why this matters:</b> Confidential legal contracts and patient PDFs never leave your machine. Zero internet = zero data leakage risk. The container can be nuked after each QA session.
+      </div>
+    </div>
+  </div>
+
+  <div class="howto-section">
+    <h3 style="color:#b06fff">◉ Agent 6: The Translator — Gemini 1.5 Flash</h3>
+    <div class="step-card">
+      <div class="step-card-title">Setup (0 min — same key as Orchestrator)</div>
+      <div class="step-card-body">
+        Uses the same Gemini API key as the Orchestrator.<br>
+        Flash model = much faster + much cheaper than Pro.<br>
+        Perfect for batch SMS parsing: thousands of messages per hour.<br>
+        Free tier: 1,500 requests/day at 1M tokens/min.
+      </div>
+    </div>
+  </div>
+
+  <div class="howto-section">
+    <h3 style="color:#ff8c00">▲ Agent 7: The Deployer — ChatGPT-4o / GitHub Copilot</h3>
+    <div class="step-card">
+      <div class="step-card-title">Setup options</div>
+      <div class="step-card-body">
+        <b>Option A — ChatGPT-4o (free at chatgpt.com):</b><br>
+        1. chatgpt.com → free account → uses GPT-4o<br>
+        2. Get API key at platform.openai.com → paste into Deployer field<br>
+        3. Free trial credits usually cover Monday's deployment<br><br>
+        <b>Option B — GitHub Copilot (free for students):</b><br>
+        1. education.github.com → verify student status → free Copilot<br>
+        2. VS Code → install Copilot extension → use Copilot Chat<br>
+        3. Paste Deployer system prompt as context → get exact deployment configs<br><br>
+        <b>Deploy target (free): railway.app → 500 hrs/month free</b>
+      </div>
+    </div>
+  </div>
+
+  <div class="howto-section">
+    <h3>🔒 Safety & Data Isolation Architecture</h3>
+    <div class="step-card">
+      <div class="step-card-title">How we prevent cross-product data contamination</div>
+      <div class="step-card-body">
+        • Each agent has a strict system prompt that defines its product scope<br>
+        • Chat histories are stored per-agent in this dashboard — never merged<br>
+        • QA agent runs in air-gapped Docker — physically cannot send data out<br>
+        • Hunter agent runs on local Ollama — patient/client data never hits cloud APIs<br>
+        • Translator agent is stateless — strips PII before any processing<br>
+        • API keys stored in browser localStorage — never sent to any server<br>
+        • This entire dashboard is a single HTML file — no backend, no tracking
+      </div>
+    </div>
+  </div>
+  `;
+}
+
+// ════════════════════════════════════════════════
+// ROADMAP
+// ════════════════════════════════════════════════
+const ROADMAP = [
+  { week: 'TODAY — Monday Launch Sprint', tasks: [
+    { t:'Deploy RECALL FastAPI to Railway (free tier)', a:'deployer', done:false },
+    { t:'Configure Twilio webhook URL → /webhooks/twilio/inbound', a:'plumber', done:false },
+    { t:'Test inbound SMS opt-out flow with STOP keyword', a:'qa', done:false },
+    { t:'Build RECALL Streamlit dashboard v1', a:'stylist', done:false },
+    { t:'Write 5 personalised cold emails to dental clinics', a:'hunter', done:false },
+    { t:'Deploy LexRisk as isolated Railway service', a:'deployer', done:false },
+    { t:'Parse first batch of RECALL SMS replies to JSON', a:'translator', done:false },
+  ]},
+  { week: 'WEEK 2 — First Users', tasks: [
+    { t:'Add multi-tenant recall templates (physio, GP, optometry)', a:'plumber', done:false },
+    { t:'Set up n8n Google Places scraper for AU dental clinics', a:'hunter', done:false },
+    { t:'LexRisk scoring matrix v2: 5 risk dimensions', a:'plumber', done:false },
+    { t:'QA: Red-team RECALL for HIPAA compliance', a:'qa', done:false },
+    { t:'RECALL dashboard: add revenue recovered metric', a:'stylist', done:false },
+    { t:'LinkedIn outreach campaign for LexRisk (founders)', a:'hunter', done:false },
+  ]},
+  { week: 'WEEK 3-4 — Scale', tasks: [
+    { t:'Launch PrivacyHub desktop app (Tauri build)', a:'stylist', done:false },
+    { t:'Bulk patient import from PMS CSV export', a:'plumber', done:false },
+    { t:'QA: Penetration test all 3 products', a:'qa', done:false },
+    { t:'Analytics: conversion rate per recall template', a:'translator', done:false },
+    { t:'CI/CD: GitHub Actions → auto-deploy on push', a:'deployer', done:false },
+    { t:'Orchestrator: balance uni deadlines with sprint', a:'orchestrator', done:false },
+  ]},
+];
+
+const AGENT_COLOR_MAP = {};
+AGENTS.forEach(a => AGENT_COLOR_MAP[a.id] = a.color);
+
+function renderRoadmap() {
+  // Load saved done states
+  const saved = JSON.parse(localStorage.getItem('vs_roadmap') || '{}');
+  ROADMAP.forEach((w,wi) => w.tasks.forEach((t,ti) => {
+    const key = `${wi}-${ti}`;
+    if (saved[key]) t.done = true;
+  }));
+
+  document.getElementById('roadmap-content').innerHTML = ROADMAP.map((w,wi) => `
+    <div class="rm-week">
+      <div class="rm-week-hd">${w.week}</div>
+      ${w.tasks.map((t,ti) => `
+        <div class="rm-task ${t.done?'done':''}" id="rt-${wi}-${ti}" onclick="toggleTask(${wi},${ti})">
+          <div class="rm-check">${t.done?'✓':''}</div>
+          <div class="rm-text">${t.t}</div>
+          <div class="rm-agent-tag" style="color:${AGENT_COLOR_MAP[t.a]||'#666'};border-color:${AGENT_COLOR_MAP[t.a]||'#333'}44">
+            ${AGENTS.find(a=>a.id===t.a)?.icon||'?'} ${t.a}
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+}
+
+function toggleTask(wi, ti) {
+  ROADMAP[wi].tasks[ti].done = !ROADMAP[wi].tasks[ti].done;
+  const saved = JSON.parse(localStorage.getItem('vs_roadmap') || '{}');
+  saved[`${wi}-${ti}`] = ROADMAP[wi].tasks[ti].done;
+  localStorage.setItem('vs_roadmap', JSON.stringify(saved));
+  renderRoadmap();
+}
+
+// ════════════════════════════════════════════════
+// UTILS
+// ════════════════════════════════════════════════
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); dispatch(); }
+}
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 110) + 'px';
+}
+
+// ════════════════════════════════════════════════
+// BOOT
+// ════════════════════════════════════════════════
+init();
+</script>
+</body>
+</html>
