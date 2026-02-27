@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Venture Studio · 7-Agent Swarm</title>
+<title>Venture Studio · 2026 Swarm</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=IBM+Plex+Mono:wght@300;400;500;600&display=swap');
 
@@ -411,48 +411,40 @@ body::before {
 </head>
 <body>
 
-<!-- ═══════════ TOP BAR ═══════════ -->
 <div class="topbar">
   <div class="logo">Venture<span>Studio</span></div>
   <div class="topbar-divider"></div>
   <div class="badge badge-green">7-AGENT SWARM</div>
   <div class="badge badge-yellow">3 PRODUCTS</div>
-  <div class="badge" style="color:var(--c1);border-color:var(--c1);background:rgba(0,240,255,.05)">MONDAY SPRINT</div>
+  <div class="badge" style="color:var(--c1);border-color:var(--c1);background:rgba(0,240,255,.05)">ZERO-RAM HYBRID</div>
   <div id="live-badge">
     <div class="live-dot"></div>
     $0.00 / day · 0 MB RAM
   </div>
 </div>
 
-<!-- ═══════════ APP ═══════════ -->
 <div class="app">
 
-  <!-- ── SIDEBAR ── -->
   <div class="sidebar">
     <div class="sidebar-section-label">AGENTS</div>
     <div class="agent-list" id="agent-list"></div>
 
     <div class="safety-panel">
       <div class="safety-panel-title">⚙ SAFETY WALL</div>
-      <div class="safety-row"><span class="ck">✓</span> Zero RAM (API calls only)</div>
+      <div class="safety-row"><span class="ck">✓</span> Zero RAM (Cloud APIs)</div>
       <div class="safety-row"><span class="ck">✓</span> No cross-agent data leak</div>
       <div class="safety-row"><span class="ck">✓</span> Isolated context per agent</div>
       <div class="safety-row"><span class="ck">✓</span> All free-tier tools</div>
       <div class="safety-row"><span class="ck">✓</span> PII sandboxed in QA</div>
-      <div class="safety-row"><span class="ck">✓</span> System prompt isolation</div>
     </div>
   </div>
 
-  <!-- ── MAIN ── -->
   <div class="main">
 
-    <!-- Agent header -->
     <div class="agent-header" id="agent-header"></div>
 
-    <!-- API key bar -->
     <div class="keys-bar" id="keys-bar"></div>
 
-    <!-- Tab row -->
     <div class="tabs-row">
       <button class="tab-btn active" onclick="switchTab('chat',this)">CHAT</button>
       <button class="tab-btn" onclick="switchTab('swarm',this)">SWARM MAP</button>
@@ -460,7 +452,6 @@ body::before {
       <button class="tab-btn" onclick="switchTab('roadmap',this)">ROADMAP</button>
     </div>
 
-    <!-- ── CHAT PANEL ── -->
     <div class="panel active" id="panel-chat">
       <div class="chat-wrap" id="chat-wrap"></div>
       <div class="input-zone">
@@ -481,7 +472,6 @@ body::before {
       </div>
     </div>
 
-    <!-- ── SWARM MAP PANEL ── -->
     <div class="panel" id="panel-swarm">
       <div class="swarm-panel">
         <div class="swarm-intro">
@@ -491,12 +481,10 @@ body::before {
       </div>
     </div>
 
-    <!-- ── SETUP GUIDE PANEL ── -->
     <div class="panel" id="panel-howto">
       <div class="howto-panel" id="howto-content"></div>
     </div>
 
-    <!-- ── ROADMAP PANEL ── -->
     <div class="panel" id="panel-roadmap">
       <div class="roadmap-panel" id="roadmap-content"></div>
     </div>
@@ -513,15 +501,15 @@ const AGENTS = [
   id:'orchestrator', icon:'⬡', name:'The Orchestrator', role:'Manager · Planner',
   color:'#00f0ff',
   product:'ALL PRODUCTS', isolation:'Read-only planner — never writes code or touches PII',
-  tools:['Gemini 1.5 Pro (AI Studio)', 'Free 2M token window'],
-  freeHow:'google.com/aistudio → Get API key → 1M tokens/day free',
-  apiType:'gemini',
-  keyLabel:'Gemini API Key',
-  keyPlaceholder:'AIza...',
-  keyStorageKey:'vs_gemini_key',
-  model:'gemini-1.5-pro-latest',
-  endpoint:'https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={key}',
-  about:'Breaks your 60-day roadmap into daily tasks and routes work to the right agent. Feed it your entire codebase — 2M token window absorbs everything.',
+  tools:['Kimi K2.5 (Moonshot)', 'Thinking Mode API'],
+  freeHow:'platform.moonshot.cn → Get API key',
+  apiType:'openai',
+  keyLabel:'Moonshot API Key',
+  keyPlaceholder:'sk-...',
+  keyStorageKey:'vs_moonshot_key',
+  model:'moonshot-v1-8k',
+  endpoint:'https://api.moonshot.cn/v1/chat/completions',
+  about:'Breaks your 60-day roadmap into daily tasks and routes work to the right agent. Feed it your entire codebase — handles deep planning.',
   examples:['Plan today\'s sprint: what should I build first for Monday launch?','Balance my academic deadlines with the RECALL and LexRisk sprint','Create a full Monday launch checklist for all 3 products'],
   systemPrompt:`You are the Orchestrator of a 3-product venture studio sprint ending this Monday.
 
@@ -531,12 +519,12 @@ PRODUCTS:
 3. PrivacyHub — Local desktop privacy tool (Tauri/CustomTkinter)
 
 YOUR 7-AGENT SWARM:
-- Plumber (Groq/Llama-3): Backend code, FastAPI, SQL schemas, Twilio
-- Stylist (v0.dev/Claude Sonnet): Frontend, Streamlit dashboards, desktop UI
-- Hunter (local n8n + Ollama): Scraping, cold emails, LinkedIn outreach
-- Ruthless QA (air-gapped Docker + Mistral): Security testing, red-teaming
-- Translator (Gemini Flash): SMS intent parsing, unstructured→JSON
-- Deployer (Copilot/ChatGPT): Railway/Render deployment, Dockerfiles, CI/CD
+- Plumber: Backend code, FastAPI, SQL schemas, Twilio
+- Stylist: Frontend, Streamlit dashboards, desktop UI
+- Hunter: Scraping, cold emails, LinkedIn outreach
+- Ruthless QA: Security testing, red-teaming
+- Translator: SMS intent parsing, unstructured→JSON
+- Deployer: Railway/Render deployment, Dockerfiles, CI/CD
 
 YOUR ROLE:
 - Break tasks into daily bite-sized steps
@@ -555,13 +543,13 @@ FORMAT: Bullet points. Concise. Always end with the next 3 priority actions.`
   id:'plumber', icon:'⚙', name:'The Plumber', role:'Backend Engineer',
   color:'#00ff88',
   product:'RECALL · LexRisk', isolation:'No patient PII in prompts — use placeholder data only',
-  tools:['Cline (VS Code extension)', 'Groq API — Llama-3 70B', 'Sub-second inference'],
-  freeHow:'console.groq.com → Free tier: 14,400 req/day · Install Cline in VS Code → add Groq key',
+  tools:['Cline (VS Code extension)', 'Groq API — Llama-3.3 70B'],
+  freeHow:'console.groq.com → Free tier: 14,400 req/day',
   apiType:'groq',
   keyLabel:'Groq API Key',
   keyPlaceholder:'gsk_...',
   keyStorageKey:'vs_groq_key',
-  model:'llama3-70b-8192',
+  model:'llama-3.3-70b-versatile',
   endpoint:'https://api.groq.com/openai/v1/chat/completions',
   about:'Writes FastAPI routes, Supabase SQL schemas, and Twilio webhooks at sub-second speed. The engine room of your entire stack.',
   examples:['Write the FastAPI inbound SMS webhook for RECALL with Twilio TwiML response','Generate the Supabase RLS policy for the multi-tenant recalls table','Build a bulk patient import endpoint that reads CSV and upserts to Supabase'],
@@ -589,11 +577,11 @@ OUTPUT FORMAT: Code block first, then brief explanation of key decisions.`
   id:'stylist', icon:'◈', name:'The Stylist', role:'Frontend Designer',
   color:'#ff4da6',
   product:'RECALL Dashboard · PrivacyHub', isolation:'UI only — no API keys or secrets in frontend code',
-  tools:['v0.dev by Vercel (free)', 'Claude 3.5 Sonnet (claude.ai free)'],
-  freeHow:'v0.dev → free 200 credits/month · claude.ai → free tier unlimited for UI generation',
+  tools:['v0.dev by Vercel', 'Qwen Coder'],
+  freeHow:'v0.dev → free 200 credits/month',
   apiType:'none',
   keyLabel:'No API key needed',
-  keyPlaceholder:'Uses v0.dev or claude.ai directly (free)',
+  keyPlaceholder:'Uses v0.dev directly (free)',
   keyStorageKey:'',
   model:'none',
   endpoint:'',
@@ -627,16 +615,16 @@ OUTPUT: Complete file ready to run. No truncation.`
 {
   id:'hunter', icon:'◎', name:'The Hunter', role:'Marketer · Sales Automation',
   color:'#ffd200',
-  product:'RECALL GTM · LexRisk GTM', isolation:'Local-only n8n — zero PII sent to cloud APIs',
-  tools:['Local n8n (self-hosted)', 'Ollama — Llama-3 (local)', '100% offline generation'],
-  freeHow:'n8n.io/download → run locally free forever · ollama.ai → pull llama3 → runs on CPU',
-  apiType:'ollama',
-  keyLabel:'Ollama URL (local)',
-  keyPlaceholder:'http://localhost:11434',
-  keyStorageKey:'vs_ollama_url',
-  model:'llama3',
-  endpoint:'http://localhost:11434/api/generate',
-  about:'Scrapes Google Places for dental clinic contacts and writes hyper-personalised cold outreach. Runs 100% locally — zero API fees for thousands of email generations.',
+  product:'RECALL GTM · LexRisk GTM', isolation:'Cloud API — zero local RAM used',
+  tools:['Groq API', 'Gemma 2 9B (Cloud)'],
+  freeHow:'Same Groq key as Plumber → Runs instantly in cloud',
+  apiType:'groq',
+  keyLabel:'Groq API Key (same as Plumber)',
+  keyPlaceholder:'gsk_...',
+  keyStorageKey:'vs_groq_key',
+  model:'gemma2-9b-it',
+  endpoint:'https://api.groq.com/openai/v1/chat/completions',
+  about:'Writes hyper-personalised cold outreach. Runs instantly in the cloud via Groq, generating highly conversational sales emails.',
   examples:['Write a cold email to a dental clinic owner about RECALL — include pain points about no-shows and revenue loss','Generate a LinkedIn DM sequence (3 messages) for LexRisk targeting startup founders','Write an n8n workflow JSON to scrape Google Places for physio clinics in Melbourne'],
   systemPrompt:`You are the Hunter — a B2B growth hacker for healthcare and legal SaaS.
 
@@ -647,29 +635,26 @@ PRODUCTS TO SELL:
 OUTREACH CHANNELS:
 - Cold email (personalised, max 150 words, conversational)
 - LinkedIn DM (3-message sequence: connect → value → ask)
-- n8n workflows (Google Places scraping → CRM enrichment → email send)
 
 SAFETY RULES:
 - Always include {{unsubscribe_link}} in emails (GDPR/CAN-SPAM)
-- Respect robots.txt in scraping workflows
 - Use {{practice_name}}, {{owner_name}}, {{city}} variables — never hardcode
-- Rate-limit scraping: max 1 request/2s
 
-OUTPUT: Ready-to-use copy or n8n JSON workflow. Personalisation variables in {{double_braces}}.`
+OUTPUT: Ready-to-use copy. Personalisation variables in {{double_braces}}.`
 },
 {
   id:'qa', icon:'⚠', name:'The Ruthless QA', role:'Security · Red Team Tester',
   color:'#ff3c3c',
-  product:'LexRisk · RECALL', isolation:'AIR-GAPPED Docker — zero internet, confidential PDFs never leave machine',
-  tools:['Air-gapped Docker container', 'Local Mistral 7B (Ollama)', 'Zero network access'],
-  freeHow:'docker pull ollama/ollama → docker run --network none → ollama pull mistral → fully offline',
-  apiType:'ollama',
-  keyLabel:'Ollama URL (air-gapped)',
-  keyPlaceholder:'http://localhost:11434',
-  keyStorageKey:'vs_qa_ollama_url',
-  model:'mistral',
-  endpoint:'http://localhost:11434/api/generate',
-  about:'Tries to break your software before users do. Air-gapped so confidential legal contracts and patient PDFs have zero leakage risk. Tests for HIPAA, OWASP, and prompt injection.',
+  product:'LexRisk · RECALL', isolation:'NVIDIA Nemotron — Enterprise Rule Following',
+  tools:['NVIDIA NIM', 'Nemotron-70B'],
+  freeHow:'build.nvidia.com → Get free credits',
+  apiType:'openai',
+  keyLabel:'NVIDIA API Key',
+  keyPlaceholder:'nvapi-...',
+  keyStorageKey:'vs_nvidia_key',
+  model:'nvidia/llama-3.1-nemotron-70b-instruct',
+  endpoint:'https://integrate.api.nvidia.com/v1/chat/completions',
+  about:'Tries to break your software before users do. Tests for HIPAA, OWASP, and prompt injection using NVIDIA\'s enterprise auditing model.',
   examples:['Red-team the RECALL inbound SMS handler — try to bypass opt-out with emoji and unicode tricks','Test LexRisk for prompt injection: craft a contract clause that tries to override the system prompt','Check the RECALL bulk import endpoint for SQL injection via CSV fields'],
   systemPrompt:`You are the Ruthless QA — a senior security researcher and red-team tester.
 
@@ -701,9 +686,9 @@ Bug ID | Severity | Component | Description | Steps | Fix Recommendation`
   color:'#b06fff',
   product:'RECALL · LexRisk', isolation:'Stateless — strip all PII before processing, never retain data',
   tools:['Gemini 1.5 Flash (AI Studio)', '1M tokens/day free', 'Batch SMS parsing'],
-  freeHow:'Same Gemini API key as Orchestrator — Flash is a different model, practically free',
+  freeHow:'aistudio.google.com → Free tier: 1,500 req/day',
   apiType:'gemini',
-  keyLabel:'Gemini API Key (same as Orchestrator)',
+  keyLabel:'Gemini API Key',
   keyPlaceholder:'AIza...',
   keyStorageKey:'vs_gemini_key',
   model:'gemini-1.5-flash-latest',
@@ -737,15 +722,15 @@ STRICT OUTPUT: Raw JSON only. No prose. No code blocks. Just the JSON object or 
   id:'deployer', icon:'▲', name:'The Deployer', role:'DevOps · Infrastructure',
   color:'#ff8c00',
   product:'ALL PRODUCTS', isolation:'Config files only — secrets always as $ENV_VAR placeholders',
-  tools:['GitHub Copilot (free for students)', 'ChatGPT-4o (free tier)', 'Railway · Render · Cloudflare'],
-  freeHow:'github.com/education → free Copilot · chatgpt.com → free 4o · railway.app → 500hrs/month free',
+  tools:['DeepSeek API', 'DeepSeek-V3'],
+  freeHow:'platform.deepseek.com → Get API key',
   apiType:'openai',
-  keyLabel:'OpenAI API Key (ChatGPT-4o)',
+  keyLabel:'DeepSeek API Key',
   keyPlaceholder:'sk-...',
-  keyStorageKey:'vs_openai_key',
-  model:'gpt-4o',
-  endpoint:'https://api.openai.com/v1/chat/completions',
-  about:'Takes localhost → live internet so Twilio webhooks fire when your laptop is closed. Writes exact Railway configs, Dockerfiles, and GitHub Actions CI/CD pipelines ready to copy-paste.',
+  keyStorageKey:'vs_deepseek_key',
+  model:'deepseek-chat',
+  endpoint:'https://api.deepseek.com/chat/completions',
+  about:'Takes localhost → live internet so Twilio webhooks fire when your laptop is closed. Writes exact Railway configs, Dockerfiles, and GitHub Actions CI/CD pipelines.',
   examples:['Write the complete Railway deployment config for the RECALL FastAPI backend with Twilio webhook','Generate a Dockerfile for the LexRisk FastAPI service with minimal image size','Create a GitHub Actions workflow that deploys to Railway on every push to main'],
   systemPrompt:`You are the Deployer — a DevOps engineer specialising in Python/FastAPI SaaS deployment.
 
@@ -854,7 +839,6 @@ function renderAgentHeader() {
 function renderKeysBar() {
   const a = current;
   const saved = a.keyStorageKey ? (localStorage.getItem(a.keyStorageKey)||'') : '';
-  const isOllama = a.apiType === 'ollama';
   const isNone   = a.apiType === 'none';
   document.getElementById('keys-bar').innerHTML = `
     <span class="keys-bar-label">🔑 API KEY:</span>
@@ -864,17 +848,11 @@ function renderKeysBar() {
       value="${isNone ? a.keyPlaceholder : saved}"
       ${isNone ? 'disabled' : ''}
       oninput="saveKey(this.value)"
-      style="width:${isOllama?'280px':'260px'}"
+      style="width:260px"
     />
     <span class="keys-bar-label" style="margin-left:4px;color:var(--dim)">→</span>
     <span class="keys-bar-label" style="color:var(--text)">${a.freeHow}</span>
-    ${!isNone ? `<a href="https://${getSignupUrl(a)}" target="_blank" style="font-size:9px;color:var(--c1);margin-left:auto;text-decoration:none">GET FREE KEY ↗</a>` : ''}
   `;
-}
-
-function getSignupUrl(a) {
-  const map = { gemini:'aistudio.google.com', groq:'console.groq.com', ollama:'ollama.ai', openai:'platform.openai.com' };
-  return map[a.apiType] || 'google.com';
 }
 
 function saveKey(val) {
@@ -975,7 +953,7 @@ async function dispatch() {
   try {
     reply = await callAgentAPI(current, msg);
   } catch(e) {
-    reply = `⚠ Error: ${e.message}\n\nTroubleshooting:\n• Check your API key is entered above\n• For Ollama agents: ensure Ollama is running locally with: ollama serve\n• For Gemini: get free key at aistudio.google.com\n• For Groq: get free key at console.groq.com\n\nThis dashboard sends requests directly from your browser to the AI API — no server in between, zero cost, zero RAM.`;
+    reply = `⚠ Error: ${e.message}\n\nTroubleshooting:\n• Check your API key is entered above\n• Ensure you have internet connection\n\nThis dashboard sends requests directly from your browser to the AI API — no server in between, zero cost, zero RAM.`;
   }
 
   document.getElementById(tId)?.remove();
@@ -1005,9 +983,9 @@ async function callAgentAPI(agent, userMsg) {
     return generateStylistGuide(userMsg);
   }
 
-  // ── GEMINI (Orchestrator + Translator) ──
+  // ── GEMINI (Translator) ──
   if (agent.apiType === 'gemini') {
-    if (!apiKey) throw new Error('Gemini API key not entered. Get free key at aistudio.google.com');
+    if (!apiKey) throw new Error(`${agent.keyLabel} not entered.`);
     const url = agent.endpoint.replace('{model}', agent.model).replace('{key}', apiKey);
     const contents = [
       { role:'user', parts:[{text: agent.systemPrompt + '\n\n[BEGIN CONVERSATION]'}] },
@@ -1027,9 +1005,9 @@ async function callAgentAPI(agent, userMsg) {
     return data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response from Gemini.';
   }
 
-  // ── GROQ (Plumber) — OpenAI-compatible ──
+  // ── GROQ (Plumber, Hunter) ──
   if (agent.apiType === 'groq') {
-    if (!apiKey) throw new Error('Groq API key not entered. Get free at console.groq.com');
+    if (!apiKey) throw new Error(`${agent.keyLabel} not entered.`);
     const messages = [
       { role:'system', content: agent.systemPrompt },
       ...turns.map(m => ({ role: m.role, content: m.content }))
@@ -1044,9 +1022,9 @@ async function callAgentAPI(agent, userMsg) {
     return data.choices?.[0]?.message?.content || 'No response from Groq.';
   }
 
-  // ── OPENAI (Deployer) ──
+  // ── OPENAI FORMAT (Moonshot, DeepSeek, NVIDIA) ──
   if (agent.apiType === 'openai') {
-    if (!apiKey) throw new Error('OpenAI API key not entered. Get free trial at platform.openai.com\n\nAlternative: Use ChatGPT-4o at chatgpt.com and paste the system prompt manually.');
+    if (!apiKey) throw new Error(`${agent.keyLabel} not entered.`);
     const messages = [
       { role:'system', content: agent.systemPrompt },
       ...turns.map(m => ({ role: m.role, content: m.content }))
@@ -1058,36 +1036,20 @@ async function callAgentAPI(agent, userMsg) {
     });
     const data = await res.json();
     if (data.error) throw new Error(data.error.message);
-    return data.choices?.[0]?.message?.content || 'No response from OpenAI.';
-  }
-
-  // ── OLLAMA (Hunter, QA) — local ──
-  if (agent.apiType === 'ollama') {
-    const baseUrl = localStorage.getItem(agent.keyStorageKey) || 'http://localhost:11434';
-    const context = turns.map(m => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`).join('\n');
-    const fullPrompt = `${agent.systemPrompt}\n\n${context}\nUser: ${userMsg}\nAssistant:`;
-    const res = await fetch(`${baseUrl}/api/generate`, {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ model: agent.model, prompt: fullPrompt, stream: false })
-    });
-    if (!res.ok) throw new Error(`Ollama error ${res.status}. Is Ollama running? Run: ollama serve`);
-    const data = await res.json();
-    return data.response || 'No response from Ollama.';
+    return data.choices?.[0]?.message?.content || 'No response from API.';
   }
 
   throw new Error('Unknown API type: ' + agent.apiType);
 }
 
-// Stylist generates a guide (no API needed — use v0.dev or claude.ai directly)
+// Stylist generates a guide (no API needed — use v0.dev directly)
 function generateStylistGuide(userMsg) {
   const steps = [
     `**Step 1 — Copy this prompt to v0.dev (free at v0.dev):**\n\n\`\`\`\n${userMsg}\n\nStyle requirements:\n- Dark theme, enterprise B2B aesthetic\n- IBM Plex Mono for data, display serif for headings\n- Dense information layout, not spacious consumer UI\n- Color scheme: dark navy bg, cyan/green accents for positive metrics\n\`\`\``,
-    `**Step 2 — Or use Claude at claude.ai (free tier):**\nPaste the same prompt above into claude.ai and ask for React or Streamlit code.`,
-    `**Step 3 — For Streamlit dashboards (RECALL):**\nDownload the output, run:\n\`\`\`\npip install streamlit\nstreamlit run app.py\n\`\`\``,
-    `**Step 4 — For PrivacyHub desktop (CustomTkinter):**\n\`\`\`\npip install customtkinter\npython app.py\n\`\`\``
+    `**Step 2 — For Streamlit dashboards (RECALL):**\nDownload the output, run:\n\`\`\`\npip install streamlit\nstreamlit run app.py\n\`\`\``,
+    `**Step 3 — For PrivacyHub desktop (CustomTkinter):**\n\`\`\`\npip install customtkinter\npython app.py\n\`\`\``
   ];
-  return `The Stylist uses v0.dev and claude.ai directly — no API key needed.\n\n${steps.join('\n\n')}\n\n**Your task translated for v0.dev:**\n"${userMsg}"\n\n👉 Open v0.dev now → paste the prompt above → get production-ready code in 30 seconds.`;
+  return `The Stylist uses v0.dev and Qwen Coder directly — no API key needed.\n\n${steps.join('\n\n')}\n\n**Your task translated for v0.dev:**\n"${userMsg}"\n\n👉 Open v0.dev now → paste the prompt above → get production-ready code in 30 seconds.`;
 }
 
 // ════════════════════════════════════════════════
@@ -1132,15 +1094,14 @@ function renderHowTo() {
   </div>
 
   <div class="howto-section">
-    <h3 style="color:#00f0ff">⬡ Agent 1: The Orchestrator — Gemini 1.5 Pro</h3>
+    <h3 style="color:#00f0ff">⬡ Agent 1: The Orchestrator — Kimi K2.5</h3>
     <div class="step-card">
       <div class="step-card-title">Setup (5 min)</div>
       <div class="step-card-body">
-        1. Go to <a href="https://aistudio.google.com" target="_blank">aistudio.google.com</a><br>
-        2. Sign in with Google → click <b>Get API Key</b><br>
-        3. Copy key → paste into Orchestrator's key field above<br>
-        4. <b>Free tier:</b> 1,500 requests/day, 1M tokens/min — more than enough<br>
-        5. Same key works for The Translator (uses Gemini Flash model)
+        1. Go to <a href="https://platform.moonshot.cn" target="_blank">platform.moonshot.cn</a><br>
+        2. Quick Login with your phone number<br>
+        3. Navigate to API Keys → Copy key (starts with sk-...)<br>
+        4. Paste into Orchestrator's key field above
       </div>
     </div>
   </div>
@@ -1152,59 +1113,47 @@ function renderHowTo() {
       <div class="step-card-body">
         <b>For this dashboard:</b><br>
         1. Go to <a href="https://console.groq.com" target="_blank">console.groq.com</a> → create account<br>
-        2. API Keys → Create key → paste into Plumber key field<br>
-        3. Free tier: 14,400 requests/day, Llama-3 70B at sub-second speed<br><br>
+        2. API Keys → Create key → paste into Plumber key field<br><br>
         <b>For VS Code (Cline integration):</b><br>
-        4. Install Cline extension in VS Code<br>
-        5. Cline settings → Provider: Groq → paste key<br>
-        6. Now Cline writes code directly into your files using Llama-3 70B free
+        3. Install Cline extension in VS Code<br>
+        4. Cline settings → Provider: Groq → paste key<br>
+        5. Now Cline writes code directly into your files
       </div>
     </div>
   </div>
 
   <div class="howto-section">
-    <h3 style="color:#ff4da6">◈ Agent 3: The Stylist — v0.dev + claude.ai</h3>
+    <h3 style="color:#ff4da6">◈ Agent 3: The Stylist — v0.dev</h3>
     <div class="step-card">
       <div class="step-card-title">Setup (2 min)</div>
       <div class="step-card-body">
         <b>No API key needed.</b><br>
-        • <a href="https://v0.dev" target="_blank">v0.dev</a> → free 200 credits/month → best for React components<br>
-        • <a href="https://claude.ai" target="_blank">claude.ai</a> → free tier → best for Streamlit dashboards<br>
-        • This dashboard auto-generates the prompt for you — just copy-paste to v0.dev<br>
-        • For Streamlit: <code>pip install streamlit && streamlit run app.py</code>
+        • <a href="https://v0.dev" target="_blank">v0.dev</a> → free 200 credits/month → best for UI components<br>
+        • This dashboard auto-generates the prompt for you — just copy-paste to v0.dev
       </div>
     </div>
   </div>
 
   <div class="howto-section">
-    <h3 style="color:#ffd200">◎ Agent 4: The Hunter — n8n + Ollama (fully local)</h3>
+    <h3 style="color:#ffd200">◎ Agent 4: The Hunter — Gemma via Groq</h3>
     <div class="step-card">
-      <div class="step-card-title">Setup (20 min)</div>
+      <div class="step-card-title">Setup (0 min)</div>
       <div class="step-card-body">
-        <b>Ollama (for this dashboard):</b><br>
-        1. <a href="https://ollama.ai" target="_blank">ollama.ai</a> → download → install<br>
-        2. Terminal: <code>ollama pull llama3</code> (downloads ~4GB, one-time)<br>
-        3. <code>ollama serve</code> → runs on <code>http://localhost:11434</code><br>
-        4. Enter that URL in the Hunter's key field<br><br>
-        <b>n8n for scraping workflows:</b><br>
-        5. <code>npx n8n</code> → opens at <code>http://localhost:5678</code><br>
-        6. Build Google Places → filter → email send workflow<br>
-        7. Zero cost, zero cloud PII — everything local
+        <b>Uses your Groq API Key:</b><br>
+        1. Paste the same key you used for the Plumber.<br>
+        2. This allows you to generate high-speed cold emails without using local RAM.
       </div>
     </div>
   </div>
 
   <div class="howto-section">
-    <h3 style="color:#ff3c3c">⚠ Agent 5: The Ruthless QA — Air-gapped Docker + Mistral</h3>
+    <h3 style="color:#ff3c3c">⚠ Agent 5: The Ruthless QA — Nemotron-70B</h3>
     <div class="step-card">
-      <div class="step-card-title">Setup (15 min) — Maximum security isolation</div>
+      <div class="step-card-title">Setup (2 min)</div>
       <div class="step-card-body">
-        1. Install Docker Desktop<br>
-        2. Pull Ollama image: <code>docker pull ollama/ollama</code><br>
-        3. Run air-gapped (NO internet): <code>docker run --network none -p 11434:11434 ollama/ollama</code><br>
-        4. Inside container: <code>ollama pull mistral</code><br>
-        5. QA agent URL: <code>http://localhost:11434</code><br><br>
-        <b>Why this matters:</b> Confidential legal contracts and patient PDFs never leave your machine. Zero internet = zero data leakage risk. The container can be nuked after each QA session.
+        1. Go to <a href="https://build.nvidia.com" target="_blank">build.nvidia.com</a><br>
+        2. Sign up and grab your free API credits (Key starts with nvapi-...)<br>
+        3. Paste it in the QA section to red-team your code
       </div>
     </div>
   </div>
@@ -1212,46 +1161,23 @@ function renderHowTo() {
   <div class="howto-section">
     <h3 style="color:#b06fff">◉ Agent 6: The Translator — Gemini 1.5 Flash</h3>
     <div class="step-card">
-      <div class="step-card-title">Setup (0 min — same key as Orchestrator)</div>
+      <div class="step-card-title">Setup (2 min)</div>
       <div class="step-card-body">
-        Uses the same Gemini API key as the Orchestrator.<br>
-        Flash model = much faster + much cheaper than Pro.<br>
-        Perfect for batch SMS parsing: thousands of messages per hour.<br>
-        Free tier: 1,500 requests/day at 1M tokens/min.
+        1. Go to <a href="https://aistudio.google.com" target="_blank">aistudio.google.com</a><br>
+        2. Sign in with Google → click <b>Get API Key</b><br>
+        3. Copy key → paste into Translator's key field above
       </div>
     </div>
   </div>
 
   <div class="howto-section">
-    <h3 style="color:#ff8c00">▲ Agent 7: The Deployer — ChatGPT-4o / GitHub Copilot</h3>
+    <h3 style="color:#ff8c00">▲ Agent 7: The Deployer — DeepSeek-V3</h3>
     <div class="step-card">
-      <div class="step-card-title">Setup options</div>
+      <div class="step-card-title">Setup (2 min)</div>
       <div class="step-card-body">
-        <b>Option A — ChatGPT-4o (free at chatgpt.com):</b><br>
-        1. chatgpt.com → free account → uses GPT-4o<br>
-        2. Get API key at platform.openai.com → paste into Deployer field<br>
-        3. Free trial credits usually cover Monday's deployment<br><br>
-        <b>Option B — GitHub Copilot (free for students):</b><br>
-        1. education.github.com → verify student status → free Copilot<br>
-        2. VS Code → install Copilot extension → use Copilot Chat<br>
-        3. Paste Deployer system prompt as context → get exact deployment configs<br><br>
-        <b>Deploy target (free): railway.app → 500 hrs/month free</b>
-      </div>
-    </div>
-  </div>
-
-  <div class="howto-section">
-    <h3>🔒 Safety & Data Isolation Architecture</h3>
-    <div class="step-card">
-      <div class="step-card-title">How we prevent cross-product data contamination</div>
-      <div class="step-card-body">
-        • Each agent has a strict system prompt that defines its product scope<br>
-        • Chat histories are stored per-agent in this dashboard — never merged<br>
-        • QA agent runs in air-gapped Docker — physically cannot send data out<br>
-        • Hunter agent runs on local Ollama — patient/client data never hits cloud APIs<br>
-        • Translator agent is stateless — strips PII before any processing<br>
-        • API keys stored in browser localStorage — never sent to any server<br>
-        • This entire dashboard is a single HTML file — no backend, no tracking
+        1. Go to <a href="https://platform.deepseek.com" target="_blank">platform.deepseek.com</a><br>
+        2. Generate API key (starts with sk-...)<br>
+        3. Paste into Deployer key field above to get exact deployment commands
       </div>
     </div>
   </div>
@@ -1273,7 +1199,7 @@ const ROADMAP = [
   ]},
   { week: 'WEEK 2 — First Users', tasks: [
     { t:'Add multi-tenant recall templates (physio, GP, optometry)', a:'plumber', done:false },
-    { t:'Set up n8n Google Places scraper for AU dental clinics', a:'hunter', done:false },
+    { t:'Set up CRM for AU dental clinics', a:'hunter', done:false },
     { t:'LexRisk scoring matrix v2: 5 risk dimensions', a:'plumber', done:false },
     { t:'QA: Red-team RECALL for HIPAA compliance', a:'qa', done:false },
     { t:'RECALL dashboard: add revenue recovered metric', a:'stylist', done:false },
